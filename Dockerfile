@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.2
 
-FROM python:3.9-buster
+FROM python:buster
 WORKDIR /app
 ARG TAG
 RUN pip install Cython
@@ -33,6 +33,7 @@ RUN echo '*' > /etc/mdns.allow \
 
 RUN pip install --upgrade pip wheel setuptools
 RUN pip install lastversion
+RUN pip install numpy
 RUN pip install git+https://github.com/LedFx/LedFx@$TAG
 
 
