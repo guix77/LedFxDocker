@@ -1,18 +1,19 @@
 # syntax = docker/dockerfile:1.2
 
-FROM python:buster
+FROM python:3.12-bookworm
 WORKDIR /app
 ARG TAG
 RUN pip install Cython
 RUN dpkg --add-architecture armhf
 RUN apt-get update
-RUN apt-get install -y gcc \
+RUN apt-get install -y cmake \
+                       gcc \
                        git \
                        libatlas3-base \
-		       libavformat58 \
-		       portaudio19-dev \
-		       avahi-daemon \
-		       pulseaudio \
+		               libavformat59 \
+		               portaudio19-dev \
+		               avahi-daemon \
+		               pulseaudio \
                        alsa-utils \ 
                        libnss-mdns \
                        wget \
@@ -38,8 +39,10 @@ RUN pip install git+https://github.com/LedFx/LedFx@$TAG
 
 
 ARG TARGETPLATFORM
-RUN --mount=type=secret,id=GITHUB_API_TOKEN if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=armhf; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=armhf; else ARCHITECTURE=amd64; fi \
-    && export GITHUB_API_TOKEN=$(cat /run/secrets/GITHUB_API_TOKEN) && lastversion download badaix/snapcast --format assets --filter "^snapclient_(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\-)?(?:(\d)(_$ARCHITECTURE\.deb))$" -o snapclient.deb
+# RUN --mount=type=secret,id=GITHUB_API_TOKEN if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=armhf; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=armhf; else ARCHITECTURE=amd64; fi \
+#     && export GITHUB_API_TOKEN=$(cat /run/secrets/GITHUB_API_TOKEN) && lastversion download badaix/snapcast --format assets --filter "^snapclient_(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\-)?(?:(\d)(_$ARCHITECTURE\.deb))$" -o snapclient.deb
+RUN if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=armhf; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=armhf; else ARCHITECTURE=amd64_bookworm; fi \
+    && lastversion download badaix/snapcast --format assets --filter "^snapclient_(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\-)?(?:(\d)(_$ARCHITECTURE\.deb))$" -o snapclient.deb
 
 RUN apt-get install -fy ./snapclient.deb && rm -rf /var/lib/apt/lists/*
 COPY setup-files/ /app/
